@@ -19,12 +19,22 @@ random.seed(42)                        # misma muestra cada vez que lo ejecutes
 random.shuffle(urls)
 
 piloto = []
+ya_vistos = set()
+if os.path.exists("piloto_repos.json"):
+    with open("piloto_repos.json", encoding="utf-8") as f:
+        piloto = json.load(f)
+    ya_vistos = {(p["owner"], p["repo"]) for p in piloto}
+    print(f"Reanudando: {len(piloto)} repos ya guardados")
+
+counter = len(piloto)
 counter = 0
 for url in urls:
     m = re.match(r"https://github\.com/([^/]+)/([^/]+)$", url)
     if not m:
         continue
     owner, repo = m.groups()
+    if (owner,repo) in ya_vistos:
+        continue
     try:
         r = session.get(
             f"https://api.github.com/repos/{owner}/{repo}",
